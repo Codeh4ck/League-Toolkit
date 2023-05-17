@@ -14,19 +14,24 @@ public class LobbyHandler
     private readonly ILeagueApi _clientApi;
     private readonly ILeagueApi _remoteApi;
 
-    private Models.Region _region;
+    private bool _isRunning;
     
+    private Models.Region _region;
+
     private string[] _cache;
     private Dictionary<string, QueueMap> _cachedPlayerStats;
 
     public event OnLobbyUpdate OnLobbyUpdate;
     public event OnLobbyError OnLobbyError;
 
+
     public LobbyHandler(ILeagueApi clientApi, ILeagueApi remoteApi)
     {
         _clientApi = clientApi ?? throw new ArgumentNullException(nameof(clientApi));
         _remoteApi = remoteApi ?? throw new ArgumentNullException(nameof(remoteApi));
 
+        _isRunning = false;
+        
         _region = Models.Region.Unknown;
         
         _cache = Array.Empty<string>();
@@ -38,13 +43,18 @@ public class LobbyHandler
     public Models.Region GetRegion() => _region;
 
     public void Start(CancellationToken token = default)
-        => Task.Factory.StartNew(() => Loop(token), token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+    {
+        _isRunning = true;
+        Task.Factory.StartNew(() => Loop(token), token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+    }
+
+    public void Stop() => _isRunning = false;
 
     private async Task Loop(CancellationToken token = default)
     {
         ConsoleUtility.WriteColorLine(Color.Blue, "Lobby handler started. Looking for lobby...", true);
 
-        while (!token.IsCancellationRequested)
+        while (!token.IsCancellationRequested && _isRunning)
         {
             await Task.Delay(2000, token);
 
@@ -54,7 +64,7 @@ public class LobbyHandler
 
                 if (_region == Models.Region.Unknown)
                 {
-                    ConsoleUtility.WriteColorLine(Color.Orange1, "Querying client API for user info...", true);
+                    ConsoleUtility.WriteColorLine(Color.Yellow, "Querying client API for user info...", true);
 
                     string userInfoResponse = await _clientApi.MakeRequestAsync(HttpMethod.Get, Endpoints.GetUserInfoEndpoint);
                     if (string.IsNullOrEmpty(userInfoResponse)) continue;
@@ -76,7 +86,7 @@ public class LobbyHandler
                     table.AddRow(new Markup("[blue]Summoner Level[/]"), new Markup($"[bold green]{userInfoActual.AccountData.SummerLevel}[/]"));
                     AnsiConsole.Write(table);
 
-                    ConsoleUtility.WriteColorLine(Color.Orange1, "Parsing region from user info...", true);
+                    ConsoleUtility.WriteColorLine(Color.Yellow, "Parsing region from user info...", true);
 
                     if (!Enum.TryParse(userInfoActual.LeagueOfLegends.Platform, true, out Platform platform))
                     {
@@ -95,7 +105,7 @@ public class LobbyHandler
 
                 if (userInfoActual != null)
                 {
-                    ConsoleUtility.WriteColorLine(Color.Orange1,
+                    ConsoleUtility.WriteColorLine(Color.Yellow,
                         $"Querying remote API for ranked statistics of {userInfoActual.AccountData.SummonerName}...",
                         true);
                     
