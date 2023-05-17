@@ -6,7 +6,7 @@ League Toolkit is a heavily modified version of the [0xInception - Ekko](https:/
 
 *For example, you can query for a summoner's profile data through **LeagueToolkit.Core***
 
-**LeagueToolkit.SoloQueueReveal** reveals your teammates' names in a solo queue game. It differs from **Riotphobia - Lobby Reveal** in its data presentation and has been improved with some QoL changes. In addition to revealing your lobby, their ranks (tier, division and LP) will be displayed immediately, alongside a URL pointing to the specific player's op.gg profile.
+**LeagueToolkit.SoloQueueReveal** reveals your teammates' names in a solo queue game. It differs from **Lobby Reveal** in its data presentation and has been improved with some QoL changes. In addition to revealing your lobby, their ranks (tier, division and LP) will be displayed immediately, alongside a URL pointing to the specific player's op.gg profile.
 
 ## Installation & usage
 
