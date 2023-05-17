@@ -22,3 +22,9 @@ No installation is needed to run **Solo Queue Reveal**. Make sure you have the p
 * Double click **LeagueToolkit.SoloQueueReveal.exe**
 * Wait for it to detect your League of Legends client if you've opened it before the client
 * Once you're in a solo queue lobby, it will attempt to grab the participant names and display them to you# League Toolkit
+
+### TODO
+
+*Fetch more info about lobby participants (winrate, losers queue, etc.)
+*Differentiate data presented when in Flex or Normal queue
+*Make some predictions regarding the game outcome based on player performance
