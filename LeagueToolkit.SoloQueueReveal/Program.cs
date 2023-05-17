@@ -13,24 +13,39 @@ public class Program
     private static bool _update = false;
     private static CancellationTokenSource _cts;
     private static Dictionary<Guid, LobbyHandler> _lobbyHandlers;
+
+    private const string MutexIdentifier = "LeagueToolkitSingleInstanceConsoleSQR";
     
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
+        using Mutex mutex = new(false, MutexIdentifier);
+        
+        if (!mutex.WaitOne(0))
+        {
+            ConsoleUtility.WriteColorLine(Color.Red, "League Toolkit - Solo Queue Reveal is already running.", true);
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            Environment.Exit(0);
+        }
+            
         _cts = new();
         _lobbyHandlers = new();
-        
-        Console.Title = "League Toolkit - Solo Queue Reveal";
+
+        Guid titleGuid = Guid.NewGuid();
+        Console.Title = $"Instance: {titleGuid:D}";
         
         FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(Assembly.GetExecutingAssembly().Location);
         string version = fileVersionInfo.ProductVersion;
 
-        ConsoleUtility.WriteColorLine(Color.Yellow, $"League Toolkit - Solo Queue Reveal - Version: {version}", true);
-        ConsoleUtility.WriteColorLine(Color.Yellow,"GitHub: https://www.github.com/Codeh4ck/LeagueToolkit", true);
+        ConsoleUtility.WriteColorLine(Color.Blue, $"League Toolkit - Solo Queue Reveal - Version: {version}", true);
+        ConsoleUtility.WriteColorLine(Color.Blue,"GitHub: https://www.github.com/Codeh4ck/LeagueToolkit", true);
 
+        ConsoleUtility.WriteColorLine(Color.Yellow, "Starting league client observer. Waiting for a client to open...", true);
         LeagueClientObserver observer = new();
         
         observer.ClientOpened += (sender, client) =>
         {
+            ConsoleUtility.WriteColorLine(Color.Blue,$"A League of Legends client has been found. Client ID: {client.ClientId}", true);
+
             LobbyHandler handler = new 
             (
                 new LeagueClientApi(client.AuthenticationInfo.ClientAuthToken, client.AuthenticationInfo.ClientPort), 
@@ -49,10 +64,17 @@ public class Program
             handler.Start(_cts.Token);
         };
 
-        observer.ClientClosed += (_, client) => _lobbyHandlers.Remove(client.ClientId);
+        observer.ClientClosed += (_, client) =>
+        {
+            _lobbyHandlers[client.ClientId].Stop();
+            _lobbyHandlers.Remove(client.ClientId);
+            ConsoleUtility.WriteColorLine(Color.Red,$"A League of Legends client has been closed. Client ID: {client.ClientId}", true);
+        };
 
+#pragma warning disable CS4014
         Task.Factory.StartNew(async () => await observer.Observe(_cts.Token), _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
         Task.Factory.StartNew(async () => await Refresh(_cts.Token), _cts.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+#pragma warning restore CS4014
 
         while (true)
         {
