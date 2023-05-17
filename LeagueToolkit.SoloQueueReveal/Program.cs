@@ -37,7 +37,7 @@ public class Program
         string version = fileVersionInfo.ProductVersion;
 
         ConsoleUtility.WriteColorLine(Color.Blue, $"League Toolkit - Solo Queue Reveal - Version: {version}", true);
-        ConsoleUtility.WriteColorLine(Color.Blue,"GitHub: https://www.github.com/Codeh4ck/LeagueToolkit", true);
+        ConsoleUtility.WriteColorLine(Color.Blue,"GitHub: https://github.com/Codeh4ck/League-Toolkit", true);
 
         ConsoleUtility.WriteColorLine(Color.Yellow, "Starting league client observer. Waiting for a client to open...", true);
         LeagueClientObserver observer = new();
